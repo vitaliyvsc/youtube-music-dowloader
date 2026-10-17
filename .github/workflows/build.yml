@@ -2,7 +2,7 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
   pull_request:
   workflow_dispatch:
 
@@ -14,7 +14,7 @@ jobs:
       ANDROID_HOME: /usr/local/lib/android/sdk
       ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
       ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/27.3.13750724
-      JAVA_HOME: /usr/lib/jvm/temurin-11-jdk-amd64
+      JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
 
     steps:
       - name: Checkout repo
@@ -32,7 +32,7 @@ jobs:
           sudo apt-get update
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
             build-essential git unzip wget curl ca-certificates \
-            openjdk-11-jdk-headless \
+            openjdk-17-jdk-headless \
             libssl-dev libffi-dev zlib1g-dev pkg-config \
             libgl1-mesa-dev libgles2-mesa-dev libsqlite3-dev \
             python3-dev libbz2-dev libncurses5-dev libgdbm-dev \
@@ -79,7 +79,7 @@ jobs:
           ANDROID_HOME: /usr/local/lib/android/sdk
           ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
           ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/27.3.13750724
-          JAVA_HOME: /usr/lib/jvm/temurin-11-jdk-amd64
+          JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
         run: |
           set -eux
           export PATH="/usr/local/lib/android/sdk/cmdline-tools/latest/bin:/usr/local/lib/android/sdk/platform-tools:$PATH"
