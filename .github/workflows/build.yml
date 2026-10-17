@@ -1,27 +1,20 @@
 
-name: Build Android APK
+[app]
+title = YouTube Music Downloader
+package.name = youtubemusicdownloader
+package.domain = org.lirizin
+source.dir = .
+source.include_exts = py,png,jpg,kv,atlas
+version = 1.0
+requirements = python3,kivy,yt-dlp
+orientation = portrait
+fullscreen = 0
+android.permissions = INTERNET
+android.api = 35
+android.minapi = 24
+android.archs = arm64-v8a
+android.accept_sdk_license = True
 
-on:
-  workflow_dispatch:
-  push:
-    branches: [main]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Download project
-        uses: actions/checkout@v4
-
-      - name: Build APK
-        uses: ArtemSBulgakov/buildozer-action@v1
-        with:
-          command: buildozer -v android debug
-
-      - name: Save APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: youtube-downloader-apk
-          path: bin/*.apk
-          if-no-files-found: error
+[buildozer]
+log_level = 2
+warn_on_root = 0
