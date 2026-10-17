@@ -91,11 +91,10 @@ jobs:
           export PATH="/usr/local/lib/android/sdk/cmdline-tools/latest/bin:/usr/local/lib/android/sdk/platform-tools:/usr/local/lib/android/sdk/tools/bin:$PATH"
           buildozer --version
           
-          # Явно гарантуємо, що buildozer знайде правильний шлях до SDK та NDK
-          sed -i 's|#android.sdk_path =.*|android.sdk_path = /usr/local/lib/android/sdk|g' buildozer.spec
-          sed -i 's|#android.ndk_path =.*|android.ndk_path = /usr/local/lib/android/sdk/ndk/27.3.13750724|g' buildozer.spec
+          # Надійно записуємо шляхи в кінець buildozer.spec, щоб уникнути конфліктів зі старим форматом
+          echo "android.sdk_path = /usr/local/lib/android/sdk" >> buildozer.spec
+          echo "android.ndk_path = /usr/local/lib/android/sdk/ndk/27.3.13750724" >> buildozer.spec
 
-          buildozer android clean || true
           buildozer -v android debug 2>&1 | tee buildozer-output.log
 
       - name: Upload build logs and APK
