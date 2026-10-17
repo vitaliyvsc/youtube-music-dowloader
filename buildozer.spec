@@ -31,6 +31,7 @@ orientation = portrait
 requirements = python3, kivy, yt-dlp, certifi, urllib3, idna, charset-normalizer, requests, pyopenssl
 
 # (str) Minimum Android API your app will support
+android.api = 33
 android.minapi = 24
 
 # (bool) Accept SDK license automatically
