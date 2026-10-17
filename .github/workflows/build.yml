@@ -30,11 +30,13 @@ jobs:
             libffi-dev libssl-dev automake \
             autopoint gettext
 
+    
       - name: Install Buildozer
         run: |
-          python3 -m pip install --user --break-system-packages \
-            --upgrade buildozer cython==0.29.34
+          python3 -m pip install --user --upgrade pip
+          python3 -m pip install --user --upgrade buildozer cython==0.29.34
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
 
       - name: Build APK
         run: |
