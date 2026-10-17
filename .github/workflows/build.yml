@@ -2,68 +2,56 @@
 name: Build Android APK
 
 on:
-  workflow_dispatch:
   push:
-    branches:
-      - main
-
-permissions:
-  contents: read
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-22.04
-    timeout-minutes: 120
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Java 17
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "17"
 
       - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            git zip unzip \
-            python3-pip python3-venv \
-            build-essential \
-            autoconf libtool pkg-config \
-            zlib1g-dev libncurses-dev \
-            cmake libffi-dev libssl-dev \
-            automake autopoint gettext \
-            libltdl-dev
+            git zip unzip autoconf libtool \
+            pkg-config zlib1g-dev libncurses5-dev \
+            libncursesw5-dev libtinfo5 cmake \
+            libffi-dev libssl-dev automake
 
-      - name: Install Buildozer
+      - name: Install Python dependencies
         run: |
-          python3 -m venv .venv
-          .venv/bin/python -m pip install --upgrade pip
-          .venv/bin/python -m pip install \
-            buildozer cython==0.29.34
-          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
-
-      - name: Check tools
-        run: |
-          python --version
-          cython --version
-          buildozer --version
-          java -version
+          python -m pip install --upgrade pip
+          python -m pip install \
+            "buildozer==1.6.0" \
+            "cython==0.29.34" \
+            appdirs colorama jinja2 \
+            "sh<3" meson ninja build toml \
+            packaging setuptools wheel
 
       - name: Build APK
-        env:
-          P4A_RELEASE: "0"
         run: |
           buildozer -v android debug
 
       - name: Upload APK
-        if: always()
         uses: actions/upload-artifact@v4
+        if: success()
         with:
           name: youtube-music-downloader-apk
           path: bin/*.apk
-          if-no-files-found: warn
-          retention-days: 7
+          if-no-files-found: error
