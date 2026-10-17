@@ -55,6 +55,10 @@ jobs:
 
           export PATH="/usr/local/lib/android/sdk/cmdline-tools/latest/bin:$PATH"
           
+          # Створюємо символічне посилання для задоволення старого пошуку Buildozer
+          mkdir -p /usr/local/lib/android/sdk/tools
+          ln -s /usr/local/lib/android/sdk/cmdline-tools/latest /usr/local/lib/android/sdk/tools/bin
+
           # Автоматичне створення папки ліцензій та прийняття всіх угод
           mkdir -p /usr/local/lib/android/sdk/licenses
           echo "8933bac163144fa71060ef914948e9c68c3ef943" > /usr/local/lib/android/sdk/licenses/android-sdk-license
@@ -67,6 +71,9 @@ jobs:
             "build-tools;33.0.2" \
             "cmdline-tools;latest" \
             "ndk;27.3.13750724"
+
+          ls -la /usr/local/lib/android/sdk
+          ls -la /usr/local/lib/android/sdk/ndk
 
       - name: Install Python build tools
         shell: bash
@@ -88,7 +95,7 @@ jobs:
           export PATH="/usr/local/lib/android/sdk/cmdline-tools/latest/bin:/usr/local/lib/android/sdk/platform-tools:/usr/local/lib/android/sdk/tools/bin:$PATH"
           buildozer --version
           
-          # Запуск збірки напряму без модифікації файлу
+          # Запуск збірки додатку
           buildozer -v android debug 2>&1 | tee buildozer-output.log
 
       - name: Upload build logs and APK
