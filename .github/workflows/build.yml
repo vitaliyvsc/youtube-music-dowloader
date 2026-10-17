@@ -53,7 +53,7 @@ jobs:
           mv /usr/local/lib/android/sdk/cmdline-tools/cmdline-tools /usr/local/lib/android/sdk/cmdline-tools/latest
           rm -f commandlinetools-linux-11076708_latest.zip
 
-          # ОБОВ'ЯЗКОВО: створюємо старий шлях tools/bin для python-for-android
+          # Створюємо старий шлях tools/bin для python-for-android
           mkdir -p /usr/local/lib/android/sdk/tools/bin
           cp -r /usr/local/lib/android/sdk/cmdline-tools/latest/bin/* /usr/local/lib/android/sdk/tools/bin/
           cp -r /usr/local/lib/android/sdk/cmdline-tools/latest/lib /usr/local/lib/android/sdk/tools/
@@ -66,10 +66,10 @@ jobs:
           echo "d56f5187479451eabf01fb78af6dfcb131a648b0" >> /usr/local/lib/android/sdk/licenses/android-sdk-license
           echo "24333f8a63b6825ea3c55940d16292b8f450f1cf" > /usr/local/lib/android/sdk/licenses/android-sdk-preview-license
 
-          # Встановлюємо інструменти, платформу API 31 та NDK
+          # Встановлюємо інструменти, платформу API 33 та NDK
           sdkmanager --sdk_root=/usr/local/lib/android/sdk \
             "platform-tools" \
-            "platforms;android-31" \
+            "platforms;android-33" \
             "build-tools;33.0.2" \
             "cmdline-tools;latest" \
             "ndk;27.3.13750724"
