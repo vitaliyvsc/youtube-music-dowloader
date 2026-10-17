@@ -31,8 +31,11 @@ jobs:
           .venv/bin/pip install --upgrade pip setuptools
           .venv/bin/pip install buildozer cython==0.29.34
 
-      - name: Build APK
-        run: .venv/bin/buildozer -v android debug
+            - name: Build APK
+        run: |
+          export PATH="$PWD/.venv/bin:$PATH"
+          cython --version
+          buildozer -v android debug
 
       - name: Upload APK
         if: success()
