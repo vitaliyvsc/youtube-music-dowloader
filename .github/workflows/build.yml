@@ -38,7 +38,7 @@ jobs:
             python3-dev libbz2-dev libncurses5-dev libgdbm-dev \
             libnss3-dev libreadline-dev liblzma-dev
 
-      - name: Install Android SDK + NDK
+      - name: Install Android SDK + NDK via Command Line Tools
         shell: bash
         run: |
           set -eux
@@ -53,28 +53,21 @@ jobs:
           mv /usr/local/lib/android/sdk/cmdline-tools/cmdline-tools /usr/local/lib/android/sdk/cmdline-tools/latest
           rm -f commandlinetools-linux-11076708_latest.zip
 
-          # Створюємо старий шлях tools/bin і робимо туди фізичні посилання, щоб Buildozer заспокоївся
-          mkdir -p /usr/local/lib/android/sdk/tools/bin
-          cp -r /usr/local/lib/android/sdk/cmdline-tools/latest/bin/* /usr/local/lib/android/sdk/tools/bin/
-          cp -r /usr/local/lib/android/sdk/cmdline-tools/latest/lib /usr/local/lib/android/sdk/tools/
-
           export PATH="/usr/local/lib/android/sdk/cmdline-tools/latest/bin:$PATH"
-          
-          # Автоматичне створення папки ліцензій та прийняття всіх угод
+
+          # Створення папки ліцензій та прийняття угод
           mkdir -p /usr/local/lib/android/sdk/licenses
           echo "8933bac163144fa71060ef914948e9c68c3ef943" > /usr/local/lib/android/sdk/licenses/android-sdk-license
           echo "d56f5187479451eabf01fb78af6dfcb131a648b0" >> /usr/local/lib/android/sdk/licenses/android-sdk-license
           echo "24333f8a63b6825ea3c55940d16292b8f450f1cf" > /usr/local/lib/android/sdk/licenses/android-sdk-preview-license
 
+          # Встановлюємо інструменти, платформу API 31 та NDK
           sdkmanager --sdk_root=/usr/local/lib/android/sdk \
             "platform-tools" \
-            "platforms;android-33" \
+            "platforms;android-31" \
             "build-tools;33.0.2" \
             "cmdline-tools;latest" \
             "ndk;27.3.13750724"
-
-          ls -la /usr/local/lib/android/sdk
-          ls -la /usr/local/lib/android/sdk/tools/bin
 
       - name: Install Python build tools
         shell: bash
@@ -93,9 +86,10 @@ jobs:
           JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
         run: |
           set -eux
-          export PATH="/usr/local/lib/android/sdk/cmdline-tools/latest/bin:/usr/local/lib/android/sdk/platform-tools:/usr/local/lib/android/sdk/tools/bin:$PATH"
+          export PATH="/usr/local/lib/android/sdk/cmdline-tools/latest/bin:/usr/local/lib/android/sdk/platform-tools:$PATH"
           buildozer --version
           
+          # Запуск компіляції додатку
           buildozer -v android debug 2>&1 | tee buildozer-output.log
 
       - name: Upload build logs and APK
