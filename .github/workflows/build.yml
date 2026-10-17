@@ -1,4 +1,3 @@
-
 name: Build Android APK
 
 on:
@@ -32,7 +31,7 @@ jobs:
             git zip unzip autoconf libtool \
             pkg-config zlib1g-dev libncurses5-dev \
             libncursesw5-dev libtinfo5 cmake \
-            libffi-dev libssl-dev automake
+            libffi-dev libssl-dev automake ccache
 
       - name: Install Python dependencies
         run: |
@@ -43,6 +42,17 @@ jobs:
             appdirs colorama jinja2 \
             "sh<3" meson ninja build toml \
             packaging setuptools wheel
+
+      # Кешування папок buildozer та .gradle, щоб SDK/NDK не завантажувалися щоразу наново
+      - name: Cache Buildozer global directory
+        uses: actions/cache@v4
+        with:
+          path: |
+            .buildozer
+            /home/runner/.buildozer
+          key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
+          restore-keys: |
+            ${{ runner.os }}-buildozer-
 
       - name: Build APK
         run: |
