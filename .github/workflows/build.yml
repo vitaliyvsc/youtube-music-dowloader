@@ -15,7 +15,7 @@ jobs:
       ANDROID_HOME: /usr/local/lib/android/sdk
       ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
       ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/27.3.13750724
-      JAVA_HOME: /usr/lib/jvm/temurin-11-jdk-amd64
+      JAVA_HOME: /usr/lib/jvm/java-11-openjdk-amd64
 
     steps:
       - name: Checkout repository
@@ -37,7 +37,8 @@ jobs:
             unzip \
             wget \
             curl \
-            openjdk-11-jdk \
+            openjdk-11-jdk-headless \
+            ca-certificates \
             libssl-dev \
             libffi-dev \
             zlib1g-dev \
@@ -52,68 +53,111 @@ jobs:
             libgdbm-dev \
             libnss3-dev \
             libreadline-dev \
-            libffi-dev \
-            liblzma-dev \
-            libpq-dev \
-            ca-certificates
+            liblzma-dev
 
           java -version
 
-      - name: Install Android SDK + NDK
+      - name: Ensure $HOME/.local/bin is on PATH (pip user installs)
         shell: bash
         run: |
           set -eux
+          echo "Adding $HOME/.local/bin to PATH"
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-          sudo mkdir -p /usr/local/lib/android
-          sudo chown -R "$USER":"$USER" /usr/local/lib/android
-          mkdir -p /usr/local/lib/android/sdk
+      - name: Install Android SDK cmdline-tools and SDK / NDK
+        shell: bash
+        run: |
+          set -eux
+          SDK_ROOT=${ANDROID_SDK_ROOT}
+          sudo mkdir -p "${SDK_ROOT}"
+          sudo chown -R "$USER":"$USER" "${SDK_ROOT}"
+          mkdir -p "${SDK_ROOT}"
 
           cd /tmp
 
-          # Android command line tools
-          curl -fL -o cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-          mkdir -p /usr/local/lib/android/sdk/cmdline-tools
-          unzip -q cmdline-tools.zip -d /usr/local/lib/android/sdk/cmdline-tools
-          mv /usr/local/lib/android/sdk/cmdline-tools/cmdline-tools /usr/local/lib/android/sdk/cmdline-tools/latest
-          rm -f cmdline-tools.zip
+          # download stable command line tools (update URL only if Google changes it)
+          CLI_ZIP="commandlinetools-linux-9477386_latest.zip"
+          curl -fLO "https://dl.google.com/android/repository/${CLI_ZIP}"
 
-          export PATH="/usr/local/lib/android/sdk/cmdline-tools/latest/bin:$PATH"
+          unzip -q "${CLI_ZIP}" -d "${SDK_ROOT}/cmdline-tools-temp"
+          mkdir -p "${SDK_ROOT}/cmdline-tools/latest"
+          mv "${SDK_ROOT}/cmdline-tools-temp/cmdline-tools/"* "${SDK_ROOT}/cmdline-tools/latest/"
+          rm -rf "${SDK_ROOT}/cmdline-tools-temp" "${CLI_ZIP}"
 
-          yes | sdkmanager --sdk_root=/usr/local/lib/android/sdk --licenses
-          sdkmanager --sdk_root=/usr/local/lib/android/sdk "platform-tools" "platforms;android-33" "build-tools;33.0.2" "ndk;27.3.13750724" "cmdline-tools;latest"
+          export PATH="${SDK_ROOT}/cmdline-tools/latest/bin:${PATH}"
 
-          ls -R /usr/local/lib/android/sdk
+          # Accept licenses and install platform tools, build-tools, platform, and NDK
+          yes | sdkmanager --sdk_root="${SDK_ROOT}" --licenses
+          sdkmanager --sdk_root="${SDK_ROOT}" "platform-tools" "platforms;android-33" "build-tools;33.0.2" "cmdline-tools;latest" "ndk;27.3.13750724"
 
-      - name: Install Python dependencies
+          echo "SDK directory listing:"
+          ls -la "${SDK_ROOT}"
+          echo "NDK listing:"
+          ls -la "${SDK_ROOT}/ndk" || true
+
+      - name: Show environment & debug info
+        shell: bash
+        run: |
+          set -eux
+          echo "PATH=$PATH"
+          echo "JAVA_HOME=$JAVA_HOME"
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          echo "ANDROID_NDK_HOME=$ANDROID_NK_HOME"
+          which java || true
+          java -version || true
+          which sdkmanager || true
+          sdkmanager --list_installed || true
+          ls -la $HOME/.local/bin || true
+
+      - name: Install Python tools (buildozer, cython)
         shell: bash
         run: |
           set -eux
           python -m pip install --upgrade pip setuptools wheel
-          python -m pip install "cython==0.29.36"
-          python -m pip install "buildozer==1.5.0"
-          python -m pip install "virtualenv"
+          # pin cython and buildozer to known-working versions
+          python -m pip install --upgrade "cython==0.29.36" "buildozer==1.4.2"
+          python -m pip show buildozer
+          # ensure buildozer is runnable
+          command -v buildozer || true
 
-          if [ -f requirements.txt ]; then
-            python -m pip install -r requirements.txt
-          fi
-
-      - name: Build APK with Buildozer
+      - name: Extra debug - where is buildozer and python
         shell: bash
         run: |
           set -eux
-          export PATH="/usr/local/lib/android/sdk/cmdline-tools/latest/bin:/usr/local/lib/android/sdk/platform-tools:$PATH"
+          echo "Which buildozer:"
+          which buildozer || echo "buildozer not in PATH"
+          echo "pip show buildozer:"
+          python -m pip show buildozer || true
+          echo "Python site.USER_BASE/bin contents:"
+          python -c "import site, os; print(site.USER_BASE); print(os.listdir(site.USER_BASE+'/bin') if os.path.isdir(site.USER_BASE+'/bin') else [])"
+
+      - name: Build APK with Buildozer (capture verbose log)
+        shell: bash
+        env:
+          ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+          ANDROID_HOME: /usr/local/lib/android/sdk
+          ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/27.3.13750724
+          JAVA_HOME: /usr/lib/jvm/java-11-openjdk-amd64
+        run: |
+          set -eux
+          export PATH="/usr/local/lib/android/sdk/cmdline-tools/latest/bin:/usr/local/lib/android/sdk/platform-tools:$HOME/.local/bin:$PATH"
           export ANDROID_SDK_ROOT=/usr/local/lib/android/sdk
           export ANDROID_HOME=/usr/local/lib/android/sdk
           export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/27.3.13750724
 
           buildozer --version
+          # keep a verbose log so we can inspect it on failure
           buildozer android clean || true
-          buildozer -v android debug
 
-      - name: Upload APK artifact
+          # run build and tee output to a log file we upload later
+          buildozer -v android debug 2>&1 | tee buildozer-output.log
+
+      - name: Upload logs and APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: android-debug-apk
+          name: build-output
           path: |
+            buildozer-output.log
             bin/*.apk
             bin/*/*.apk
