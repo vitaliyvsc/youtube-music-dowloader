@@ -1,24 +1,15 @@
 [app]
-title = YouTube Music Downloader
-package.name = youtubemusicdownloader
-package.domain = org.lirizin
+title = YouTube Downloader
+package.name = youtubedownloader
+package.domain = org.test
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
-version = 1.0
-
-# Додали необхідні бібліотеки для коректної роботи yt-dlp та мережі в Android
-requirements = python3,kivy,yt-dlp,certifi,urllib3,requests,idna,charset-normalizer
-
-orientation = portrait
-fullscreen = 0
+version = 0.1
+requirements = python3,kivy,yt-dlp,certifi,urllib3,idna,charset-normalizer==3.3.2,requests,openssl
 android.permissions = INTERNET
-
-# Зменшуємо API до стабільного 33, щоб уникнути помилок компіляції в GitHub Actions
-android.api = 33
 android.minapi = 24
-android.archs = arm64-v8a
-android.accept_sdk_license = True
+android.orientation = portrait
 
 [buildozer]
 log_level = 2
-warn_on_root = 0
+warn_on_root = 1
