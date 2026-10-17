@@ -11,7 +11,7 @@ orientation = portrait
 
 requirements = python3,kivy,yt-dlp,certifi,urllib3,idna,charset-normalizer,requests,pyopenssl
 
-android.api = 31
+android.api = 33
 android.minapi = 24
 android.accept_sdk_license = True
 android.archs = armeabi-v7a, arm64-v8a
