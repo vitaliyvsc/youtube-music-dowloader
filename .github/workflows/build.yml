@@ -53,6 +53,11 @@ jobs:
           mv /usr/local/lib/android/sdk/cmdline-tools/cmdline-tools /usr/local/lib/android/sdk/cmdline-tools/latest
           rm -f commandlinetools-linux-11076708_latest.zip
 
+          # ОБОВ'ЯЗКОВО: створюємо старий шлях tools/bin для python-for-android
+          mkdir -p /usr/local/lib/android/sdk/tools/bin
+          cp -r /usr/local/lib/android/sdk/cmdline-tools/latest/bin/* /usr/local/lib/android/sdk/tools/bin/
+          cp -r /usr/local/lib/android/sdk/cmdline-tools/latest/lib /usr/local/lib/android/sdk/tools/
+
           export PATH="/usr/local/lib/android/sdk/cmdline-tools/latest/bin:$PATH"
 
           # Створення папки ліцензій та прийняття угод
@@ -86,7 +91,7 @@ jobs:
           JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
         run: |
           set -eux
-          export PATH="/usr/local/lib/android/sdk/cmdline-tools/latest/bin:/usr/local/lib/android/sdk/platform-tools:$PATH"
+          export PATH="/usr/local/lib/android/sdk/cmdline-tools/latest/bin:/usr/local/lib/android/sdk/platform-tools:/usr/local/lib/android/sdk/tools/bin:$PATH"
           buildozer --version
           
           # Запуск компіляції додатку
