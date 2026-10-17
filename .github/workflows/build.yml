@@ -66,11 +66,11 @@ jobs:
           echo "d56f5187479451eabf01fb78af6dfcb131a648b0" >> /usr/local/lib/android/sdk/licenses/android-sdk-license
           echo "24333f8a63b6825ea3c55940d16292b8f450f1cf" > /usr/local/lib/android/sdk/licenses/android-sdk-preview-license
 
-          # Встановлюємо інструменти, платформу API 33 та NDK
+          # Встановлюємо інструменти, платформу API 34 та NDK
           sdkmanager --sdk_root=/usr/local/lib/android/sdk \
             "platform-tools" \
-            "platforms;android-33" \
-            "build-tools;33.0.2" \
+            "platforms;android-34" \
+            "build-tools;34.0.0" \
             "cmdline-tools;latest" \
             "ndk;27.3.13750724"
 
