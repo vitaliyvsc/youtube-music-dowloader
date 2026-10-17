@@ -54,7 +54,13 @@ jobs:
           rm -f commandlinetools-linux-11076708_latest.zip
 
           export PATH="/usr/local/lib/android/sdk/cmdline-tools/latest/bin:$PATH"
-          yes | sdkmanager --sdk_root=/usr/local/lib/android/sdk --licenses
+          
+          # Автоматичне створення папки ліцензій та прийняття всіх угод
+          mkdir -p /usr/local/lib/android/sdk/licenses
+          echo "8933bac163144fa71060ef914948e9c68c3ef943" > /usr/local/lib/android/sdk/licenses/android-sdk-license
+          echo "d56f5187479451eabf01fb78af6dfcb131a648b0" >> /usr/local/lib/android/sdk/licenses/android-sdk-license
+          echo "24333f8a63b6825ea3c55940d16292b8f450f1cf" > /usr/local/lib/android/sdk/licenses/android-sdk-preview-license
+
           sdkmanager --sdk_root=/usr/local/lib/android/sdk \
             "platform-tools" \
             "platforms;android-33" \
