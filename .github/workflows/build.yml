@@ -53,6 +53,11 @@ jobs:
           mv /usr/local/lib/android/sdk/cmdline-tools/cmdline-tools /usr/local/lib/android/sdk/cmdline-tools/latest
           rm -f commandlinetools-linux-11076708_latest.zip
 
+          # Створюємо старий шлях tools/bin і робимо туди фізичні посилання, щоб Buildozer заспокоївся
+          mkdir -p /usr/local/lib/android/sdk/tools/bin
+          cp -r /usr/local/lib/android/sdk/cmdline-tools/latest/bin/* /usr/local/lib/android/sdk/tools/bin/
+          cp -r /usr/local/lib/android/sdk/cmdline-tools/latest/lib /usr/local/lib/android/sdk/tools/
+
           export PATH="/usr/local/lib/android/sdk/cmdline-tools/latest/bin:$PATH"
           
           # Автоматичне створення папки ліцензій та прийняття всіх угод
@@ -67,6 +72,9 @@ jobs:
             "build-tools;33.0.2" \
             "cmdline-tools;latest" \
             "ndk;27.3.13750724"
+
+          ls -la /usr/local/lib/android/sdk
+          ls -la /usr/local/lib/android/sdk/tools/bin
 
       - name: Install Python build tools
         shell: bash
@@ -85,7 +93,7 @@ jobs:
           JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
         run: |
           set -eux
-          export PATH="/usr/local/lib/android/sdk/cmdline-tools/latest/bin:/usr/local/lib/android/sdk/platform-tools:$PATH"
+          export PATH="/usr/local/lib/android/sdk/cmdline-tools/latest/bin:/usr/local/lib/android/sdk/platform-tools:/usr/local/lib/android/sdk/tools/bin:$PATH"
           buildozer --version
           
           buildozer -v android debug 2>&1 | tee buildozer-output.log
