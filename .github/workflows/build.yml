@@ -2,66 +2,29 @@ name: Build Android APK
 
 on:
   push:
-    branches: [main]
+    branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
 
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
+    - name: Build with Buildozer Action
+      uses: ArtemSydoryk/buildozer-action@v1
+      with:
+        command: buildozer android debug
+        submodule: false
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            git zip unzip autoconf libtool \
-            pkg-config zlib1g-dev libncurses5-dev \
-            libncursesw5-dev libtinfo5 cmake \
-            libffi-dev libssl-dev automake ccache
-
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install \
-            "buildozer==1.6.0" \
-            "cython==0.29.34" \
-            appdirs colorama jinja2 \
-            "sh<3" meson ninja build toml \
-            packaging setuptools wheel
-
-      # Кешування папок buildozer та .gradle, щоб SDK/NDK не завантажувалися щоразу наново
-      - name: Cache Buildozer global directory
-        uses: actions/cache@v4
-        with:
-          path: |
-            .buildozer
-            /home/runner/.buildozer
-          key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
-          restore-keys: |
-            ${{ runner.os }}-buildozer-
-
-      - name: Build APK
-        run: |
-          buildozer -v android debug
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        if: success()
-        with:
-          name: youtube-music-downloader-apk
-          path: bin/*.apk
-          if-no-files-found: error
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: app-debug
+        path: bin/*.apk
