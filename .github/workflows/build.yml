@@ -10,19 +10,100 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+      ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/27.3.13750724
+      JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Build with Buildozer
-        uses: ArtemSBulgakov/buildozer-action@v1
-        id: buildozer
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
         with:
-          command: buildozer -v android debug
-          buildozer_version: master
+          python-version: "3.10"
 
-      - name: Upload APK Artifact
+      - name: Install system dependencies & Java 17
+        shell: bash
+        run: |
+          set -eux
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            build-essential git unzip wget curl ca-certificates \
+            openjdk-17-jdk-headless \
+            libssl-dev libffi-dev zlib1g-dev pkg-config \
+            libgl1-mesa-dev libgles2-mesa-dev libsqlite3-dev \
+            python3-dev libbz2-dev libncurses5-dev libgdbm-dev \
+            libnss3-dev libreadline-dev liblzma-dev
+
+      - name: Install Android SDK + NDK via Command Line Tools
+        shell: bash
+        run: |
+          set -eux
+          sudo mkdir -p /usr/local/lib/android
+          sudo chown -R "$USER":"$USER" /usr/local/lib/android
+          mkdir -p /usr/local/lib/android/sdk
+
+          cd /tmp
+          curl -fLO https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          mkdir -p /usr/local/lib/android/sdk/cmdline-tools
+          unzip -q commandlinetools-linux-11076708_latest.zip -d /usr/local/lib/android/sdk/cmdline-tools
+          mv /usr/local/lib/android/sdk/cmdline-tools/cmdline-tools /usr/local/lib/android/sdk/cmdline-tools/latest
+          rm -f commandlinetools-linux-11076708_latest.zip
+
+          # Створюємо старий шлях tools/bin для python-for-android
+          mkdir -p /usr/local/lib/android/sdk/tools/bin
+          cp -r /usr/local/lib/android/sdk/cmdline-tools/latest/bin/* /usr/local/lib/android/sdk/tools/bin/
+          cp -r /usr/local/lib/android/sdk/cmdline-tools/latest/lib /usr/local/lib/android/sdk/tools/
+
+          export PATH="/usr/local/lib/android/sdk/cmdline-tools/latest/bin:$PATH"
+
+          # Створення папки ліцензій та прийняття угод
+          mkdir -p /usr/local/lib/android/sdk/licenses
+          echo "8933bac163144fa71060ef914948e9c68c3ef943" > /usr/local/lib/android/sdk/licenses/android-sdk-license
+          echo "d56f5187479451eabf01fb78af6dfcb131a648b0" >> /usr/local/lib/android/sdk/licenses/android-sdk-license
+          echo "24333f8a63b6825ea3c55940d16292b8f450f1cf" > /usr/local/lib/android/sdk/licenses/android-sdk-preview-license
+
+          # Встановлюємо інструменти, платформу API 34 та NDK
+          sdkmanager --sdk_root=/usr/local/lib/android/sdk \
+            "platform-tools" \
+            "platforms;android-34" \
+            "build-tools;34.0.0" \
+            "cmdline-tools;latest" \
+            "ndk;27.3.13750724"
+
+      - name: Install Python build tools
+        shell: bash
+        run: |
+          set -eux
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install "cython==0.29.36"
+          python -m pip install "buildozer==1.5.0"
+
+      - name: Build APK with verbose logs
+        shell: bash
+        env:
+          ANDROID_HOME: /usr/local/lib/android/sdk
+          ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+          ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/27.3.13750724
+          JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+        run: |
+          set -eux
+          export PATH="/usr/local/lib/android/sdk/cmdline-tools/latest/bin:/usr/local/lib/android/sdk/platform-tools:/usr/local/lib/android/sdk/tools/bin:$PATH"
+          buildozer --version
+          
+          # Запуск компіляції додатку з максимально детальним логуванням
+          buildozer -v android debug 2>&1 | tee buildozer-output.log
+
+      - name: Upload build logs and APK
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: package
-          path: bin/*.apk
+          name: build-logs
+          path: |
+            buildozer-output.log
+            bin/*.apk
+            bin/*/*.apk
+
